@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Spam Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#121212',
+                            800: '#1e1e1e',
+                            700: '#2d2d2d',
+                            600: '#3d3d3d',
+                            500: '#5a5a5a'
+                        },
+                        accent: {
+                            500: '#8b5cf6',
+                            600: '#7c3aed'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark-900 text-gray-100">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-dark-800 rounded-xl shadow-xl p-6">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold flex items-center justify-center gap-2">
+                    <i data-lucide="mail" class="w-6 h-6 text-accent-500"></i>
+                    Email Spam Detector
+                </h1>
+            </div>
+            
+            <div class="space-y-5">
+                <textarea 
+                    id="txt" 
+                    placeholder="Paste your email content here..." 
+                    class="w-full h-32 p-3 rounded-lg bg-dark-700 border-none text-gray-100 placeholder-gray-400 resize-none focus:ring-2 focus:ring-accent-500 focus:outline-none"
+                ></textarea>
+                
+                <button 
+                    onclick="find()" 
+                    class="w-full py-3 px-4 bg-accent-500 hover:bg-accent-600 text-white font-medium rounded-lg transition duration-200"
+                >
+                    Analyze Email
+                </button>
+                
+                <div id="result-container" class="hidden">
+                    <div class="p-4 rounded-lg bg-dark-700">
+                        <h3 id="res" class="text-lg font-medium text-center"></h3>
+                    </div>
+                </div>
+                
+                <div id="loading" class="hidden flex justify-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-500"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    
+        async function find() {
+            const text = document.getElementById('txt').value;
+            const resultContainer = document.getElementById('result-container');
+            const result = document.getElementById('res');
+            const loading = document.getElementById('loading');
+    
+            if (!text.trim()) {
+                result.innerHTML = `⚠️ Please enter some text!`;
+                resultContainer.classList.remove('hidden');
+                return;
+            }
+    
+            if (text.trim().length < 5) {
+                result.innerHTML = `⚠️ Enter at least 5 characters.`;
+                resultContainer.classList.remove('hidden');
+                return;
+            }
+    
+            resultContainer.classList.add('hidden');
+            loading.classList.remove('hidden');
+    
+            try {
+                const res = await fetch('http://127.0.0.1:5000/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ emailContent: text })
+                });
+    
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+    
+                const data = await res.json();
+                const message = data.message.trim();
+    
+                result.innerHTML = '';
+    
+                // Order matters: check "Not Spam" first
+                if (message.toLowerCase().includes("not spam")) {
+                    result.innerHTML = `
+                        <span class="text-green-500 flex items-center gap-2 text-lg">
+                            <i data-lucide="check-circle"></i> ${message} ✅
+                        </span>
+                    `;
+                } else if (message.toLowerCase().includes("spam")) {
+                    result.innerHTML = `
+                        <span class="text-red-500 flex items-center gap-2 text-lg">
+                            <i data-lucide="alert-triangle"></i> ${message} 🚫
+                        </span>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <span class="text-yellow-400 flex items-center gap-2">
+                            <i data-lucide="help-circle"></i> Unrecognized response: ${message}
+                        </span>
+                    `;
+                }
+    
+            } catch (error) {
+                console.error('Error:', error);
+                result.innerHTML = `
+                    <span class="text-red-400 flex items-center gap-2">
+                        <i data-lucide="x-circle"></i> ❌ An error occurred. Please try again.
+                    </span>
+                `;
+            } finally {
+                loading.classList.add('hidden');
+                resultContainer.classList.remove('hidden');
+                lucide.createIcons(); // Re-initialize icons
+            }
+        }
+    </script>
+    
+    
+    
+</body>
+</html>
