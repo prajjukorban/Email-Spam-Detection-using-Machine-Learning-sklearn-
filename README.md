@@ -24,6 +24,16 @@ A lightweight and modern web app that detects whether an email is **Spam** or **
 
 ---
 
+## 🔗 Model & Vectorizer Files (Required)
+
+Due to file size limitations on GitHub, the trained model files (`email spam.joblib` and `vectorizer.joblib`) are hosted on Google Drive.
+
+> 📥 Download both files from the link below and place them in the **project root folder**.
+
+**📁 [Download Model & Vectorizer (.joblib files) from Google Drive](https://drive.google.com/drive/folders/17yCoW6Np0QNy3kHUPKlun3mpsP-u5E-9?usp=sharing)**
+
+
+
 ## 📦 Installation
 
 ### 1. Clone the repository
